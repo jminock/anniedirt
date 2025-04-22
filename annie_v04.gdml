@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="gdml.xsd">
 
   <define/>
 
@@ -332,7 +332,7 @@
       <second ref="TILLHOLE_S"/>
       <position name="TILL_S_pos" unit="mm" x="-431.799999999999" y="8704.1" z="2438.4"/>
     </subtraction>
-    <box lunit="mm" name="WORLD_S" x="40000" y="40000" z="40000"/>
+    <box lunit="mm" name="WORLD_S" x="80000" y="80000" z="80000"/>
     <box lunit="mm" name="WORLD2_S" x="3000" y="7000" z="5000"/>
     <box lunit="mm" name="scintHpaddle0x34dbb10" x="200" y="1472" z="6"/>
     <box lunit="mm" name="scintVpaddle0x34dbcf0" x="200" y="1302" z="6"/>

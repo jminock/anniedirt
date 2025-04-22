@@ -50,7 +50,7 @@ Long64_t nevents      = -1;
 Long64_t nrepeat      = 1;
 G4String gdmlname     = "../../annie.gdml";
 G4String plname       = "FTFP_BERT_HP"; // want those neutrons!!!
-G4String infname      = "gntp.42.ghep.root";
+G4String infname      = "nuisance.nuwro.test.flat.root";
 G4String outfname     = "annie_flux.root";
 
 

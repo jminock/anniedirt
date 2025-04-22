@@ -74,7 +74,19 @@ private:
   TTree*                     fInputTree;
   Long64_t                   fNEntries;
   Long64_t                   fEntry;
-  genie::NtpMCEventRecord*   fGenieRecord;
+//  genie::NtpMCEventRecord*   fGenieRecord;
+  int                        PDGnu;
+  float                      nuvtxx;  //mm
+  float                      nuvtxy;  //mm
+  float                      nuvtxz;  //mm
+  float                      nuvtxt;
+  int                        nfsp;    //number of final state particles
+  float                      px[200]; //GeV/c
+  float                      py[200]; //GeV/c
+  float                      pz[200]; //GeV/c
+  float                      E[200];  //GeV
+  int                        pdg[200];
+  double                     fScaleFactor;
 
   G4int                      fVerbosity;
 };

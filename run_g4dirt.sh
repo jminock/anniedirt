@@ -1,9 +1,9 @@
 #! /usr/bin/env bash
 
 main() {
-export INDIR=""
+export INFILE=""
 export OUTDIR=""
-export VERBOSE=0
+export VERBOSE=2
 export RWHNODE=0
 export RUNNUM=""  # starting run number
 export BATCH=""
@@ -13,7 +13,7 @@ source /setup_Dockerfile.sh
 for i in "$@"; do
   case $i in
     -r=*        ) export RUNNUM="${i#*=}"               shift    ;;
-    -i=*        ) export INDIR="${i#*=}"                shift    ;;
+    -i=*        ) export INFILE="${i#*=}"                shift    ;;
     -n=*        ) export NEVENTS="${i#*=}"              shift    ;;
     -g=*        ) export GEOMETRY="${i#*=}"             shift    ;;
     -o=*        ) export OUTDIR="${i#*=}"               shift    ;;
@@ -27,7 +27,7 @@ if [ -z "${RUNNUM}" ]; then
   return 1
 fi
 
-if [ -z "${INDIR}" ]; then
+if [ -z "${INFILE}" ]; then
   echo "Use \`-i=\` to set the input directory (ex: -p=/pnfs/annie/persistent/users/...)."
   return 2
 fi
@@ -49,24 +49,22 @@ fi
 
 export USEPHYLIST="FTFP_BERT_HP"
 mkdir ${OUTDIR}
-cd ${INDIR}
+#cd ${INDIR}
 
-for INFILE in ${INDIR}/gntp.${RUNNUM}.ghep.root; do 
-  if [ -f "${INFILE}" ]; then
-    export CURRUNNUM=$(basename ${INFILE})
-    export CURRUNNUM=${CURRUNNUM#gntp.}
-    export CURRUNNUM=${CURRUNNUM%.ghep.root}
-    export OUTFILE=annie_tank_flux.${CURRUNNUM}.root
-    export OUTFILELOG=annie_tank_flux.${CURRUNNUM}.log
+#for INFILE in ${INDIR}/gntp.${RUNNUM}.ghep.root; do 
+if [ -f "${INFILE}" ]; then
+  export CURRUNNUM=$(basename ${INFILE})
+  export OUTFILE=annie_tank_flux.0.root
+  export OUTFILELOG=annie_tank_flux.${CURRUNNUM}.log
 
-cat <<EOF > ${OUTFILELOG}
+  cat <<EOF > ${OUTFILELOG}
 #============================================#
 #=============== RUN SETTINGS ===============#
 #============================================#
-  GENIE file (in dir): ${INFILE}
-g4dirt file (out dir): ${OUTFILE}
-      g4dirt file log: annie_tank_flux.${CURRUNNUM}.log
-             commmand: $B/g4annie_dirt_flux --batch -n ${NEVENTS} -g ${GEOMETRY} --physics=${USEPHYLIST} -i ${INFILE} -o $(basename ${OUTFILE})
+NUISANCE file (in dir): ${INFILE}
+ g4dirt file (out dir): ${OUTFILE}
+       g4dirt file log: annie_tank_flux.${CURRUNNUM}.log
+              commmand: $B/g4annie_dirt_flux --batch -n ${NEVENTS} -g ${GEOMETRY} --physics=${USEPHYLIST} -i ${INFILE} -o ${OUTFILE}
 
 
 #======================================#
@@ -75,22 +73,22 @@ g4dirt file (out dir): ${OUTFILE}
 EOF
 
 # I know the `-i ./$basename ${INFILE})` looks really dumb, but its necessary... I learned the hard way
-/ANNIEDirt_install/bin/g4annie_dirt_flux --batch -n ${NEVENTS} -g ${GEOMETRY} --physics=${USEPHYLIST} -i ./$(basename ${INFILE}) -o $(basename ${OUTFILE}) 2>&1 | tee -a ${OUTFILELOG}
+  ./bin/g4annie_dirt_flux --batch -n ${NEVENTS} -g ${GEOMETRY} --physics=${USEPHYLIST} -i ${INFILE} -o ${OUTFILE} 2>&1 | tee -a ${OUTFILELOG}
 
-mv -f annie_tank_flux.* ${OUTDIR}
-rm -f currentEvent.rndm
-rm -f currentRun.rndm
-  fi
-done
+  mv -f annie_tank_flux.* ${OUTDIR}
+  rm -f currentEvent.rndm
+  rm -f currentRun.rndm
+fi
+#done
 
-cd -
+#cd -
 }
 
 usage() {
 cat >&2 <<EOF
 run_g4dirt.sh -r=<run number (or numbers using \`*\`. Ex: \`-r='4*'\`)>
-              -i=</path/to/input/GENIE/files/dir>
-              -n=<number of events per GENIE file to propigate>
+              -i=</path/to/input/NUISANCE/files/dir>
+              -n=<number of events per NUISANCE file to propigate>
               -g=</path/to/geometry/file.gdml>
               -o=</path/to/output/dir>
               -h|--help

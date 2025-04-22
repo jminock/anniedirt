@@ -39,7 +39,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(MyEventRecord* myevtrec,
   , fInputFile(0)
   , fInputTree(0)
   , fEntry(-1)
-  , fGenieRecord(0)
   , fVerbosity(verbose)
 {
   
@@ -53,7 +52,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(MyEventRecord* myevtrec,
     exit(127);
   }
 
-  genie::NtpMCTreeHeader* header = 0;
+/*  genie::NtpMCTreeHeader* header = 0;
   fInputFile->GetObject("header",header);
   if ( ! header ) {
     G4cerr << "%%% could not find NtpMCTreeHeader in \"" << fInputFileName << "\"" 
@@ -66,32 +65,41 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(MyEventRecord* myevtrec,
          << "  format " << genie::NtpMCFormat::AsString(header->format) << G4endl
          << "  datime " << header->datime << G4endl
          << G4endl;
-
+*/
 //  NtpMCFormat_t format;  ///< Event Record format (GENIE support multiple formats)
 //  TObjString    cvstag;  ///< GENIE CVS Tag (to keep track of GENIE's version)
 //  NtpMCDTime    datime;  ///< Date and Time that the event ntuple was generated
 //  Long_t        runnu;   ///< MC Job run number
 
- fInputFile->GetObject("gtree",fInputTree);
+ fInputFile->GetObject("FlatTree_VARS",fInputTree);
   if ( ! fInputTree ) {
-    G4cerr << "%%% could not find input tree \"gtree\" in \"" 
+    G4cerr << "%%% could not find input tree \"FlatTree_VARS\" in \"" 
            << fInputFileName << "\"" << G4endl;
     exit(127);
   }
   fNEntries = fInputTree->GetEntries();
 
-  fMyEventRecord->run            = header->runnu;
+  fMyEventRecord->run            = 0; //FIX THIS: hard-coded
   fMyEventRecord->inputFileName  = fInputFileName;
   fMyEventRecord->inputNEntries  = fNEntries;
-  fMyEventRecord->inputTotalPOTs = fInputTree->GetWeight();
-  
+//  fMyEventRecord->inputTotalPOTs = fInputTree->GetWeight();
+
   G4cout << "%%% input file \"" << fInputFileName << "\" has " 
-         << fNEntries << " entries, total POTS "
-         << fMyEventRecord->inputTotalPOTs << G4endl;
+         << fNEntries << " entries " << G4endl;
 
-  fGenieRecord = new genie::NtpMCEventRecord;
-  fInputTree->SetBranchAddress("gmcrec",&fGenieRecord); // gmcrec is branch name
-
+//  fGenieRecord = new genie::NtpMCEventRecord;
+  fInputTree->SetBranchAddress("PDGnu",&PDGnu);
+  fInputTree->SetBranchAddress("vtxx",&nuvtxx);
+  fInputTree->SetBranchAddress("vtxy",&nuvtxy);
+  fInputTree->SetBranchAddress("vtxz",&nuvtxz);
+  fInputTree->SetBranchAddress("vtxt",&nuvtxt);
+  fInputTree->SetBranchAddress("nfsp",&nfsp);
+  fInputTree->SetBranchAddress("px",&px);
+  fInputTree->SetBranchAddress("py",&py);
+  fInputTree->SetBranchAddress("pz",&pz);
+  fInputTree->SetBranchAddress("E",&E);
+  fInputTree->SetBranchAddress("pdg",&pdg);
+  fInputTree->SetBranchAddress("fScaleFactor",&fScaleFactor);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -100,7 +108,6 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
   if ( fInputFile ) fInputFile->Close();
   delete genMessenger;
-  delete fGenieRecord;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -120,15 +127,13 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     return;
   }
   fInputTree->GetEntry(fEntry);
-  genie::EventRecord* gevtRec = fGenieRecord->event;
 
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 
-  TLorentzVector* genieVtx = gevtRec->Vertex();
-  G4double x = genieVtx->X() * m;  // GENIE uses meters
-  G4double y = genieVtx->Y() * m;  // GENIE uses meters
-  G4double z = genieVtx->Z() * m;  // GENIE uses meters
-  G4double t = genieVtx->T() * second;  // GENIE uses seconds for time
+  G4double x = nuvtxx * mm;  // NuWro uses millimeters
+  G4double y = nuvtxy * mm;  // NuWro uses millimeters
+  G4double z = nuvtxz * mm;  // NuWro uses millimeters
+  G4double t = 0.0; //nuvtxt; NuWro does not have time variable, assume time at 0 seconds
   G4ThreeVector g4pos(x,y,z);
   G4PrimaryVertex* evtVertex = new G4PrimaryVertex(g4pos,t);
 
@@ -191,11 +196,12 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   fMyEventRecord->clear();
 
   fMyEventRecord->entry  = fEntry;
-  fMyEventRecord->nupdg  = gevtRec->Probe()->Pdg();
-  fMyEventRecord->nuvtxx = genieVtx->X();
-  fMyEventRecord->nuvtxy = genieVtx->Y();
-  fMyEventRecord->nuvtxz = genieVtx->Z();
-  fMyEventRecord->nuvtxt = genieVtx->T();
+  fMyEventRecord->fScaleFactor = fScaleFactor;
+  fMyEventRecord->nupdg  = PDGnu;
+  fMyEventRecord->nuvtxx = nuvtxx;
+  fMyEventRecord->nuvtxy = nuvtxy;
+  fMyEventRecord->nuvtxz = nuvtxz;
+  fMyEventRecord->nuvtxt = 0.0;//nuvtxt;
 
   fMyEventRecord->intank = intank;
   fMyEventRecord->inhall = inhall;
@@ -217,32 +223,27 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // (or slightly bigger for charm / tau decays)
 
   if ( fVerbosity > 1 ) {
-    G4cout << "genieVtx T " << genieVtx->T() << " " << std::flush;
-    genieVtx->Print();
     G4cout << " within " <<  vtxvol << G4endl;
   }
 
-  // loop over GENIE particles
-  int nparticles = gevtRec->GetEntries();
+  // loop over NUISANCE particles
+  int nparticles = nfsp;
   for (int ipart=0; ipart<nparticles; ++ipart ) {
 
-    genie::GHepParticle* part = gevtRec->Particle(ipart);
-    if ( part->Status() != 1 ) continue; // not to be tracked
-
-    G4ParticleDefinition* partDef = particleTable->FindParticle(part->Pdg());
+    G4ParticleDefinition* partDef = particleTable->FindParticle(pdg[ipart]);
     if ( ! partDef ) {
       if ( fVerbosity > 0 ) {
-        G4cout << "skipping PDG " << part->Pdg() << G4endl;
+        G4cout << "skipping PDG " << pdg[ipart] << G4endl;
       }
       continue;
     }
-    G4ThreeVector voffset(part->Vx(),part->Vy(),part->Vz());
-    G4double toffset = part->Vt();
+//    G4ThreeVector voffset(part->Vx(),part->Vy(),part->Vz());
+//    G4double toffset = part->Vt();
 
     G4PrimaryParticle* g4part = 
       new G4PrimaryParticle( partDef, 
-                             part->Px()*GeV, part->Py()*GeV, part->Pz()*GeV,
-                             part->E()*GeV);
+                             px[ipart]*GeV, py[ipart]*GeV, pz[ipart]*GeV,
+                             E[ipart]*GeV);
 
     if ( intank ) {
       fMyEventRecord->AppendG4PrimaryParticle(evtVertex,g4part);
@@ -253,11 +254,11 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
     if ( fVerbosity > 1 ) {
       G4cout 
-        << "pdg " << part->Pdg()
-        << " E " << part->E()
-        << " Pz() " << part->Pz()
-        << " (" << part->Pz()*GeV << ") "
-        << "voffset " << voffset << " fm, t " << toffset << G4endl;
+        << "pdg " << pdg[ipart]
+        << " E " << E[ipart]
+        << " Pz() " << pz[ipart]
+        << " (" << pz[ipart]*GeV << ") " << G4endl;
+//        << "voffset " << voffset << " fm, t " << toffset << G4endl;
     }
   }
   

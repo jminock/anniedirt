@@ -51,7 +51,7 @@ public:
 public:
 
   int         run;        ///< run number
-  int         entry;      ///< entry in GENIE ghep output tree
+  int         entry;      ///< entry in NUISANCE flat output tree
   int         iter;       ///< n-th interation of the above (0...niter-1)
   int         niter;      ///< max iterations
 
@@ -88,11 +88,12 @@ public:
   std::string inputFileName;    ///<!  inputFileName
   Long64_t    inputNEntries;    ///<!  input file # of entries
   double      inputTotalPOTs;   ///<!  equiv exposure of input file
+  double      fScaleFactor;     ///<!  Scale Factor
 
-  Long64_t    nG4Repeat;        ///<!  # of passes over GENIE file
+  Long64_t    nG4Repeat;        ///<!  # of passes over NUISANCE file
   Long64_t    nG4BeamOn;        ///<!  # passed to /run/beamOn
-                                ///<!     (first N GENIE entries)
-  Long64_t    nG4Events;        ///<!  total # of G4/GENIE events processed
+                                ///<!     (first N NUISANCE entries)
+  Long64_t    nG4Events;        ///<!  total # of G4/NUISANCE events processed
 
   double      POTsPerPass;      ///<!  POTs per pass
   double      POTs;             ///<!  POTs this (total) file represents
