@@ -73,7 +73,7 @@ NUISANCE file (in dir): ${INFILE}
 EOF
 
 # I know the `-i ./$basename ${INFILE})` looks really dumb, but its necessary... I learned the hard way
-  ./bin/g4annie_dirt_flux --batch -n ${NEVENTS} -g ${GEOMETRY} --physics=${USEPHYLIST} -i ${INFILE} -o ${OUTFILE} 2>&1 | tee -a ${OUTFILELOG}
+  ../anniedirt_install/bin/g4annie_dirt_flux --batch -n ${NEVENTS} -g ${GEOMETRY} --physics=${USEPHYLIST} -i ${INFILE} -o ${OUTFILE} 2>&1 | tee -a ${OUTFILELOG}
 
   mv -f annie_tank_flux.* ${OUTDIR}
   rm -f currentEvent.rndm

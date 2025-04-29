@@ -198,9 +198,9 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   fMyEventRecord->entry  = fEntry;
   fMyEventRecord->fScaleFactor = fScaleFactor;
   fMyEventRecord->nupdg  = PDGnu;
-  fMyEventRecord->nuvtxx = nuvtxx;
-  fMyEventRecord->nuvtxy = nuvtxy;
-  fMyEventRecord->nuvtxz = nuvtxz;
+  fMyEventRecord->nuvtxx = nuvtxx / 1000.; //convert to meters
+  fMyEventRecord->nuvtxy = nuvtxy / 1000.; //convert to meters
+  fMyEventRecord->nuvtxz = nuvtxz / 1000.; //convert to meters
   fMyEventRecord->nuvtxt = 0.0;//nuvtxt;
 
   fMyEventRecord->intank = intank;
